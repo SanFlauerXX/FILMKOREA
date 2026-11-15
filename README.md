@@ -8,11 +8,11 @@
 2. Выберите добавление расширения по ссылке.
 3. Вставьте адрес:
 
-`https://raw.githubusercontent.com/SanFlauerXX/FILMKOREA/main/FILMKOREA.js`
+`https://raw.githubusercontent.com/SanFlauerXX/FILMKOREA/main/FILMKOREA-1.2.0.js`
 
 4. Сохраните и перезапустите Lampa.
 
-Название плагина: **FILMKOREA**.
+Название плагина: **FILMKOREA**. Текущая версия: **1.2.0**.
 
 ## Каталог
 
