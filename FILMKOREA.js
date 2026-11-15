@@ -1,13 +1,13 @@
 /*
  * @name FILMKOREA
  * @author SanFlauerXX
- * @version 1.5.0
+ * @version 1.6.0
  * @description Отдельный каталог южнокорейских полнометражных фильмов для Lampa.
  */
 (function () {
     'use strict';
 
-    if (window.filmkorea_150_ready) return;
+    if (window.filmkorea_160_ready) return;
 
     var PLUGIN_NAME = 'FILMKOREA';
     var SETTINGS_COMPONENT = 'filmkorea';
@@ -24,7 +24,7 @@
     function categories() {
         var today = new Date();
         var from = new Date();
-        from.setFullYear(from.getFullYear() - 2);
+        from.setFullYear(from.getFullYear() - 3);
 
         var korea = {
             with_original_language: 'ko',
@@ -39,26 +39,21 @@
                 filter: Object.assign({}, korea, {
                     'primary_release_date.gte': dateString(from),
                     'primary_release_date.lte': dateString(today),
-                    include_adult: false,
-                    'vote_count.gte': 3
+                    include_adult: false
                 })
             },
             {
                 title: 'Популярные фильмы',
                 media_type: 'movie',
                 sort_by: 'popularity.desc',
-                filter: Object.assign({}, korea, {
-                    include_adult: false,
-                    'vote_count.gte': 5
-                })
+                filter: Object.assign({}, korea)
             },
             {
                 title: 'Лучшие по рейтингу',
                 media_type: 'movie',
                 sort_by: 'vote_average.desc',
                 filter: Object.assign({}, korea, {
-                    include_adult: false,
-                    'vote_count.gte': 30
+                    'vote_count.gte': '30'
                 })
             },
             {
@@ -66,9 +61,7 @@
                 media_type: 'movie',
                 sort_by: 'primary_release_date.asc',
                 filter: Object.assign({}, korea, {
-                    'primary_release_date.gte': dateString(today),
-                    'primary_release_date.lte': dateString(new Date(today.getTime() + 730 * 86400000)),
-                    include_adult: false
+                    'primary_release_date.gte': dateString(today)
                 })
             },
             {
@@ -155,10 +148,10 @@
         });
     }
 
-    function openSearch() {
+    function openSearch(mediaType) {
         var returnController = currentController();
         Lampa.Input.edit({
-            title: 'Поиск южнокорейского фильма',
+            title: 'Поиск корейского фильма',
             value: '',
             free: true
         }, function (query) {
@@ -198,7 +191,7 @@
             items: items,
             onSelect: function (item) {
                 Lampa.Select.close();
-                if (item.search) openSearch();
+                if (item.search) openSearch(item.media_type);
                 else openCategory(item);
             },
             onBack: function () {
@@ -236,8 +229,7 @@
         } else {
             var menu = $('.menu .menu__list').eq(0);
             if (!menu.length) return;
-            if ($('.filmkorea-menu-item').length) return;
-            var button = $('<li class="menu__item selector filmkorea-menu-item"><div class="menu__ico">' + MENU_ICON + '</div><div class="menu__text"></div></li>');
+            var button = $('<li class="menu__item selector"><div class="menu__ico">' + MENU_ICON + '</div><div class="menu__text"></div></li>');
             button.find('.menu__text').text(PLUGIN_NAME);
             button.on('hover:enter', openCatalog);
             menu.append(button);
@@ -246,7 +238,7 @@
 
     function init() {
         if (!window.Lampa || !Lampa.Activity || !Lampa.Select) return false;
-        if (window.filmkorea_150_ready) return true;
+        if (window.filmkorea_160_ready) return true;
 
         var initialized = false;
         try {
@@ -263,7 +255,7 @@
         }
 
         if (initialized) {
-            window.filmkorea_150_ready = true;
+            window.filmkorea_160_ready = true;
             console.log('[FILMKOREA] plugin initialized');
             if (Lampa.Noty && Lampa.Noty.show) Lampa.Noty.show(PLUGIN_NAME + ' подключён');
             return true;
