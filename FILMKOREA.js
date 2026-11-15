@@ -1,62 +1,57 @@
 /*
  * @name FILMKOREA
  * @author SanFlauerXX
- * @version 1.2.0
- * @description Каталог южнокорейских полнометражных фильмов для Lampa.
+ * @version 1.3.0
+ * @description Южнокорейские полнометражные фильмы для Lampa.
  */
 (function () {
     'use strict';
 
-    if (window.filmkorea_120_ready) return;
+    if (window.filmkorea_130_ready) return;
 
-    var NAME = 'FILMKOREA';
-    var ICON = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M4 3h16v18H4zM7 6v12h10V6z"/></svg>';
+    var ICON = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M4 3h16v18H4zM7 6v12h10V6z"/></svg>';
 
-    function today(offsetYears, offsetDays) {
+    function dateShift(days) {
         var d = new Date();
-        if (offsetYears) d.setFullYear(d.getFullYear() + offsetYears);
-        if (offsetDays) d.setDate(d.getDate() + offsetDays);
+        d.setDate(d.getDate() + days);
         return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
     }
 
-    function makeUrl(item) {
-        var p = [
+    function categories() {
+        var today = dateShift(0);
+        return [
+            { title: 'Новинки', sort: 'primary_release_date.desc', votes: 3, from: dateShift(-730), to: today },
+            { title: 'Популярные фильмы', sort: 'popularity.desc', votes: 5 },
+            { title: 'Лучшие по рейтингу', sort: 'vote_average.desc', votes: 30 },
+            { title: 'Скоро выйдут', sort: 'primary_release_date.asc', from: today, to: dateShift(730) },
+            { title: 'Боевики', genre: 28 },
+            { title: 'Криминал', genre: 80 },
+            { title: 'Триллеры', genre: 53 },
+            { title: 'Ужасы', genre: 27 },
+            { title: 'Драмы', genre: 18 },
+            { title: 'Комедии', genre: 35 },
+            { title: 'Мелодрамы', genre: 10749 },
+            { title: 'Детективы', genre: 9648 },
+            { title: 'Фантастика', genre: 878 },
+            { title: 'Приключения', genre: 12 }
+        ];
+    }
+
+    function openCategory(item) {
+        var query = [
             'with_original_language=ko',
             'with_origin_country=KR',
-            'include_adult=false'
+            'include_adult=false',
+            'sort_by=' + (item.sort || 'popularity.desc')
         ];
-        if (item.genre) p.push('with_genres=' + item.genre);
-        if (item.sort) p.push('sort_by=' + item.sort);
-        if (item.minVotes) p.push('vote_count.gte=' + item.minVotes);
-        if (item.from) p.push('primary_release_date.gte=' + item.from);
-        if (item.to) p.push('primary_release_date.lte=' + item.to);
-        return 'discover/movie?' + p.join('&');
-    }
+        if (item.genre) query.push('with_genres=' + item.genre);
+        if (item.votes) query.push('vote_count.gte=' + item.votes);
+        if (item.from) query.push('primary_release_date.gte=' + item.from);
+        if (item.to) query.push('primary_release_date.lte=' + item.to);
 
-    function categories() {
-        var t = today(0, 0);
-        return [
-            { title: 'Новинки', sort: 'primary_release_date.desc', minVotes: 3, from: today(-2, 0), to: t },
-            { title: 'Популярные фильмы', sort: 'popularity.desc', minVotes: 5 },
-            { title: 'Лучшие по рейтингу', sort: 'vote_average.desc', minVotes: 30 },
-            { title: 'Скоро выйдут', sort: 'primary_release_date.asc', from: t, to: today(1, 0) },
-            { title: 'Боевики', genre: 28, sort: 'popularity.desc' },
-            { title: 'Криминал', genre: 80, sort: 'popularity.desc' },
-            { title: 'Триллеры', genre: 53, sort: 'popularity.desc' },
-            { title: 'Ужасы', genre: 27, sort: 'popularity.desc' },
-            { title: 'Драмы', genre: 18, sort: 'popularity.desc' },
-            { title: 'Комедии', genre: 35, sort: 'popularity.desc' },
-            { title: 'Мелодрамы', genre: 10749, sort: 'popularity.desc' },
-            { title: 'Детективы', genre: 9648, sort: 'popularity.desc' },
-            { title: 'Фантастика', genre: 878, sort: 'popularity.desc' },
-            { title: 'Приключения', genre: 12, sort: 'popularity.desc' }
-        ];
-    }
-
-    function openItem(item) {
         Lampa.Activity.push({
-            url: makeUrl(item),
-            title: NAME + ' — ' + item.title,
+            url: 'discover/movie?' + query.join('&'),
+            title: 'FILMKOREA — ' + item.title,
             component: 'category_full',
             source: 'tmdb',
             page: 1
@@ -64,69 +59,38 @@
     }
 
     function openCatalog() {
-        if (!Lampa.Select || !Lampa.Select.show) {
-            if (Lampa.Noty) Lampa.Noty.show('FILMKOREA: меню недоступно');
-            return;
-        }
         Lampa.Select.show({
-            title: NAME + ' — Южная Корея',
+            title: 'FILMKOREA — Южная Корея',
             items: categories(),
             onSelect: function (item) {
-                Lampa.Select.close();
-                openItem(item);
+                openCategory(item);
             }
         });
     }
 
-    function register() {
-        if (!window.Lampa || !Lampa.Activity || !Lampa.Select) return false;
-        if (window.filmkorea_120_ready) return true;
+    function addMenuItem() {
+        var lists = $('.menu .menu__list');
+        if (!lists.length || $('.filmkorea-menu-item').length) return;
 
-        var added = false;
+        var button = $('<li class="menu__item selector filmkorea-menu-item">' +
+            '<div class="menu__ico">' + ICON + '</div>' +
+            '<div class="menu__text">FILMKOREA</div>' +
+            '</li>');
 
-        try {
-            if (Lampa.Menu && typeof Lampa.Menu.addButton === 'function') {
-                var button = Lampa.Menu.addButton(ICON, NAME, openCatalog);
-                if (button && button.addClass) button.addClass('filmkorea-menu-button');
-                added = true;
-            }
-        } catch (e) {
-            console.log('[FILMKOREA] menu error', e);
-        }
-
-        try {
-            if (Lampa.SettingsApi && typeof Lampa.SettingsApi.addComponent === 'function' &&
-                typeof Lampa.SettingsApi.addParam === 'function') {
-                Lampa.SettingsApi.addComponent({
-                    component: 'filmkorea',
-                    name: NAME,
-                    icon: ICON
-                });
-                Lampa.SettingsApi.addParam({
-                    component: 'filmkorea',
-                    param: { name: 'filmkorea_open', type: 'button' },
-                    field: { name: 'Открыть каталог', description: 'Южнокорейские полнометражные фильмы' },
-                    onChange: openCatalog
-                });
-                added = true;
-            }
-        } catch (e2) {
-            console.log('[FILMKOREA] settings error', e2);
-        }
-
-        if (added) {
-            window.filmkorea_120_ready = true;
-            console.log('[FILMKOREA] loaded 1.2.0');
-            if (Lampa.Noty && Lampa.Noty.show) Lampa.Noty.show('FILMKOREA подключён');
-            return true;
-        }
-        return false;
+        button.on('hover:enter', openCatalog);
+        lists.eq(0).append(button);
     }
 
-    if (window.appready) register();
-    else if (window.Lampa && Lampa.Listener && Lampa.Listener.follow) {
-        Lampa.Listener.follow('app', function (event) {
-            if (event.type === 'ready') register();
-        });
+    function init() {
+        if (!window.Lampa || !Lampa.Activity || !Lampa.Select || typeof window.$ !== 'function') return;
+
+        addMenuItem();
+        window.filmkorea_130_ready = true;
+        console.log('[FILMKOREA] initialized 1.3.0');
     }
+
+    if (window.appready) init();
+    else Lampa.Listener.follow('app', function (event) {
+        if (event.type === 'ready') init();
+    });
 })();
